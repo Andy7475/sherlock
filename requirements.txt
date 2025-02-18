@@ -1,0 +1,4 @@
+anthropic
+pydantic
+ipykernel
+chromadb
