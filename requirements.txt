@@ -1,3 +1,4 @@
 anthropic
 pydantic
 ipykernel
+chromadb
