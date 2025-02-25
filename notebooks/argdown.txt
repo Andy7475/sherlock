@@ -1,0 +1,31 @@
+# Wally is in the library
+
+[wally-is-in-the-library]: Wally is in the library
+  + <Argument 1>: The evidence strongly supports that Wally was in the library. His phone's GPS coordinates place him at the library location. Additionally, a librarian reports seeing someone matching Wally's description in the library. Together, this evidence corroborates the claim that Wally was in fact in the library.
+
+<Argument 1>
+
+(1) Evidence ev_4: Wally's phone GPS shows he was at the library coordinates
+(2) Evidence ev_5: Librarian Jane saw someone matching Wally's description at 3pm
+--
+Therefore
+--
+(3) The evidence strongly supports that Wally was in the library. His phone's GPS coordinates place him at the library location. Additionally, a librarian reports seeing someone matching Wally's description in the library. Together, this evidence corroborates the claim that Wally was in fact in the library.
+  -> [wally-is-in-the-library]
+
+  - <Argument 2>: There is limited evidence to suggest Wally may not currently be in the library. Library records do not show him checking out any books today. However, this alone does not prove he is not at the library, as he could be there without checking out books. Stronger evidence, like GPS data and an eyewitness, actually place Wally at the library. So while the lack of library activity leaves open the small possibility he left, the bulk of the evidence still supports Wally being in the library.
+
+<Argument 2>
+
+(1) Evidence ev_3: Library card records don't show Wally checking out any books today
+--
+Therefore
+--
+(2) There is limited evidence to suggest Wally may not currently be in the library. Library records do not show him checking out any books today. However, this alone does not prove he is not at the library, as he could be there without checking out books. Stronger evidence, like GPS data and an eyewitness, actually place Wally at the library. So while the lack of library activity leaves open the small possibility he left, the bulk of the evidence still supports Wally being in the library.
+  -> [wally-is-in-the-library]
+
+
+## Likelihood Assessment
+
+Supporting evidence: 2 (66.7%)
+Opposing evidence: 1 (33.3%)

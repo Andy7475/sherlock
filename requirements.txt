@@ -2,3 +2,4 @@ anthropic
 pydantic
 ipykernel
 chromadb
+python-slugify>=7.0.0
