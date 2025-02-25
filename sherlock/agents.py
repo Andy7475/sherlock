@@ -47,7 +47,7 @@ create_argument_tool = {
 }
 
 
-class ClaimInvestgiationAgent:
+class ClaimInvestigationAgent:
     def __init__(self, evidence_store, supports=True):
         self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         self.evidence_store = evidence_store
