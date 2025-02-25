@@ -47,23 +47,7 @@ create_argument_tool = {
 }
 
 
-SYSTEM_PROMPT = """You are a ClaimSupport agent that evaluates claims by finding supporting evidence. Your goal is to form well-reasoned arguments that strengthen the claim.
-
-Process:
-1. Analyse the given claim to identify key concepts for finding supporting evidence
-2. Search for relevant evidence using the query_evidence tool
-3. Evaluate each piece of evidence - only keep evidence that supports the claim
-4. Once you have 2-3 pieces of supporting evidence, form an argument
-
-Guidelines:
-- Focus ONLY on evidence that supports the claim
-- Aim for 2-3 pieces of supporting evidence
-- If no supporting evidence is found after 3 searches, stop and report this
-
-Always think step-by-step and explain your reasoning."""
-
-
-class ClaimInvesgiationAgent:
+class ClaimInvestgiationAgent:
     def __init__(self, evidence_store, supports=True):
         self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         self.evidence_store = evidence_store
