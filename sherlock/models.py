@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from __future__ import annotations
+
 from typing import List, Optional, Dict, Any
 from enum import Enum
 from pydantic import BaseModel, Field, model_validator
@@ -45,7 +47,7 @@ class Likelihood(BaseModel):
         if total == 0:
             return 0
         return (self.supporting / total) * 100
-    
+
     @property
     def opposing_percentage(self) -> float:
         """Calculate percentage of opposition"""
@@ -79,7 +81,7 @@ class Claim(BaseModel):
         self.arguments.append(argument)
         self._update_likelihood()
         return argument.id
-    
+
     def _update_likelihood(self) -> None:
         """Update likelihood based on simple counting of arguments"""
         supporting = sum([arg.evidence_score for arg in self.arguments if arg.supports])
