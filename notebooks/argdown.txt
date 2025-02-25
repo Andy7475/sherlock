@@ -1,13 +1,16 @@
 # Wally is in the library
 
-[wally-is-in-the-library]: Wally is in the library (supporting=2 opposing=1)
-  + <Argument 1>: Based on the available evidence, it appears very likely that Wally was in the library. Wally's phone GPS data places him at the library location. Additionally, librarian Jane reports seeing someone matching Wally's description in the library around 3pm. Together, the GPS data and eyewitness sighting provide strong support for the claim that Wally was in the library.
+[wally-is-in-the-library]: Wally is in the library (supporting=3 opposing=3)
+  + <Argument 1>: There is compelling evidence supporting the claim that Wally is in the library. GPS data places Wally's phone at the library's coordinates, which strongly suggests his physical presence there. Additionally, a credible eyewitness account from Librarian Jane confirms that someone matching Wally's distinctive appearance was seen in the library at 3pm. Given Wally's recognizable fashion choice of always wearing a red and white striped top, Librarian Jane's identification is particularly reliable. While library card records don't show book checkouts, this doesn't contradict his presence as many library visitors use the facilities without borrowing materials - perhaps Wally is studying, using reference materials, or utilizing the library's computers or quiet space.
     + Wally's phone GPS shows he was at the library coordinates
     + Librarian Jane saw someone matching Wally's description at 3pm
-  - <Argument 2>: While there are eyewitness reports and GPS data placing Wally at the library, the library's records do not show Wally checking out any books today. This raises some doubt about whether he was actually in the library, as most people go to the library to check out books. Without records of Wally's specific activities, we cannot be fully certain he was in the library.
+    + Wally always wears a read and white striped top
+  - <Argument 2>: There is compelling evidence suggesting Wally is not in the library. While some evidence might initially point to his presence, a closer examination reveals significant reasons to doubt this claim.
     + Library card records don't show Wally checking out any books today
+    + Security camera shows someone in red and white stripes in the park
+    + Wally always wears a read and white striped top
 
 ## Likelihood Assessment
 
-Supporting evidence: 2 (66.7%)
-Opposing evidence: 1 (33.3%)
+Supporting evidence: 3 (50.0%)
+Opposing evidence: 3 (50.0%)

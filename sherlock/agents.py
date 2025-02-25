@@ -114,6 +114,7 @@ class ClaimInvestigationAgent:
                 temperature=0.7,
                 max_tokens=500,
                 tools=[create_argument_tool, evidence_query_tool],
+                tool_choice={"type":"any"}
             )
 
             # Process tool calls if any
