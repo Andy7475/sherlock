@@ -1,9 +1,10 @@
-from typing import Dict, List
+from typing import Dict
+import re
 from sherlock.models import Claim, Argument, Evidence, EvidenceCollection
 
 def export_argdown(claim: Claim) -> str:
     """
-    Export a Claim object to Argdown markup for visualisation.
+    Export a Claim object to Argdown markup for visualisation using a simple format.
     
     Args:
         claim: A Claim object with arguments and evidence
@@ -14,48 +15,35 @@ def export_argdown(claim: Claim) -> str:
     # Start building the Argdown document
     argdown = f"# {claim.text}\n\n"
     
-    # Define the main claim
-    argdown += f"[{claim.id}]: {claim.text}\n"
+    # Define the main claim - replace underscores with hyphens in ID
+    claim_id = claim.id.replace('_', '-') if claim.id else claim.id
+    argdown += f"[{claim_id}]: {claim.text} "
+    argdown += f"({claim.likelihood})\n"
     
     # Process all arguments
     for i, argument in enumerate(claim.arguments):
+        # Define relation between claim and argument (supporting or opposing)
+        # Use "Argument N" format instead of UUIDs for better readability
         arg_id = f"Argument {i+1}"
         
-        # Define relation between claim and argument (supporting or opposing)
         if argument.supports:
             argdown += f"  + <{arg_id}>: {argument.text}\n"
         else:
             argdown += f"  - <{arg_id}>: {argument.text}\n"
-            
-        # Add evidence as premises in argument reconstruction section
+        
+        # Add evidence as bullet points
         if argument.evidence_collection and len(argument.evidence_collection.evidence) > 0:
-            argdown += f"\n<{arg_id}>\n\n"
-            
-            # Add premises (evidence)
-            for j, evidence in enumerate(argument.evidence_collection.evidence):
-                argdown += f"({j+1}) Evidence {evidence.id}: {evidence.text}\n"
-            
-            argdown += "--\n"  # Inference separator
-            argdown += "Therefore\n"  # Inference rule
-            argdown += "--\n"
-            argdown += f"({len(argument.evidence_collection.evidence) + 1}) {argument.text}\n"
-            
-            # Add relation back to the main claim
-            if argument.supports:
-                argdown += f"  -> [{claim.id}]\n"
-            else:
-                argdown += f"  -| [{claim.id}]\n"
+            for evidence in argument.evidence_collection.evidence:
+                # Replace any underscores in evidence text or ID
+                evidence_text = evidence.text
+                evidence_id = evidence.id.replace('_', '-') if evidence.id else ""
                 
-        # Process subclaims if any
-        if argument.subclaims:
-            for subclaim in argument.subclaims:
-                argdown += f"\n## Subclaim: {subclaim.text}\n\n"
-                argdown += f"[{subclaim.id}]: {subclaim.text}\n"
+                # If evidence ID is included in text, replace underscores there too
+                if evidence_id and evidence_id in evidence_text:
+                    evidence_text = evidence_text.replace(evidence_id, evidence_id.replace('_', '-'))
                 
-                # Relation between argument and subclaim
-                argdown += f"<{arg_id}>\n  -> [{subclaim.id}]\n"
-            
-        argdown += "\n"  # Add spacing between arguments
+                # Add the evidence as a bullet point
+                argdown += f"    + {evidence_text}\n"
     
     # Add likelihood section if available
     if claim.likelihood:
@@ -64,6 +52,11 @@ def export_argdown(claim: Claim) -> str:
         argdown += f"Opposing evidence: {claim.likelihood.opposing} ({claim.likelihood.opposing_percentage:.1f}%)\n"
     
     return argdown
+
+
+def _replace_underscores(text: str) -> str:
+    """Replace underscores with hyphens to avoid Argdown's markdown italics parsing."""
+    return text.replace('_', '-') if text else text
 
 
 def export_argdown_json(claim: Claim) -> Dict:
@@ -76,11 +69,12 @@ def export_argdown_json(claim: Claim) -> Dict:
     Returns:
         Dictionary in Argdown JSON format
     """
-    # Create statements dictionary
+    # Create statements dictionary - replace underscores with hyphens in IDs
+    claim_id = _replace_underscores(claim.id)
     statements = {
-        claim.id: {
+        claim_id: {
             "text": claim.text,
-            "title": claim.id
+            "title": claim_id
         }
     }
     
@@ -92,12 +86,13 @@ def export_argdown_json(claim: Claim) -> Dict:
     
     # Process all arguments
     for i, argument in enumerate(claim.arguments):
+        # Use "Argument N" format instead of UUIDs
         arg_id = f"argument_{i+1}"
         
         # Add argument to arguments dictionary
         arguments[arg_id] = {
             "text": argument.text,
-            "title": f"Argument {i+1}"
+            "title": arg_id
         }
         
         # Add relation between argument and claim
@@ -108,41 +103,21 @@ def export_argdown_json(claim: Claim) -> Dict:
             "type": relation_type
         })
         
-        # Process evidence as premises
-        premises = []
+        # Process evidence
         for j, evidence in enumerate(argument.evidence_collection.evidence):
-            evidence_id = f"evidence_{evidence.id}"
+            original_evidence_id = evidence.id
+            evidence_id = _replace_underscores(original_evidence_id)
             
             # Add evidence as statement
             statements[evidence_id] = {
                 "text": evidence.text,
-                "title": f"Evidence {evidence.id}"
+                "title": f"Evidence {evidence_id}"
             }
-            
-            # Add premise
-            premises.append(evidence_id)
             
             # Add relation from evidence to argument
             relations.append({
                 "from": evidence_id,
                 "to": arg_id,
-                "type": "premise"
-            })
-        
-        # Process subclaims
-        for subclaim in argument.subclaims:
-            subclaim_id = subclaim.id
-            
-            # Add subclaim as statement
-            statements[subclaim_id] = {
-                "text": subclaim.text,
-                "title": subclaim_id
-            }
-            
-            # Add relation from argument to subclaim
-            relations.append({
-                "from": arg_id,
-                "to": subclaim_id,
                 "type": "support"
             })
     
