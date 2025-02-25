@@ -63,10 +63,11 @@ Guidelines:
 Always think step-by-step and explain your reasoning."""
 
 
-class ClaimSupportAgent:
-    def __init__(self, evidence_store):
+class ClaimInvesgiationAgent:
+    def __init__(self, evidence_store, supports=True):
         self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         self.evidence_store = evidence_store
+        self.supports = supports
         self.tools = {
             "query_evidence": self.query_evidence,
             "create_argument": self.create_argument,
@@ -81,34 +82,39 @@ class ClaimSupportAgent:
         return evidence_collection
 
     def create_argument(
-        self,
-        text: str,
-        evidence_collection: EvidenceCollection,
-        supports: bool = True,
-        subclaims: List[str] = [],
-    ) -> Argument:
-        """Create a supporting argument with evidence"""
-        logger.info(f"Creating argument: {text}")
+    self,
+    text: str,
+    evidence_collection: EvidenceCollection,
+    supports:bool,
+    subclaims: List[str] = [],
+) -> Argument:
+        """Create an argument with evidence"""
+        logger.info(f"Creating {'supporting' if supports else 'opposing'} argument: {text}")
         logger.info(
             f"With {len(evidence_collection)} pieces of evidence and {len(subclaims)} subclaims"
         )
+        
         return Argument(
             text=text,
-            supports=True,  # Always True for support agent
+            supports=supports,
             evidence_collection=evidence_collection,
             subclaims=[Claim(text=claim_text) for claim_text in subclaims],
         )
 
     def evaluate_claim(self, claim: Claim) -> Claim:
         """Main method to evaluate a claim and find supporting evidence"""
-        logger.info(f"Starting evaluation of claim: {claim.text}")
+        support_type = "supporting" if self.supports else "opposing"
+        logger.info(f"Starting evaluation of claim for {support_type} evidence: {claim.text}")
 
         messages = [
             {
                 "role": "user",
-                "content": f"Evaluate this claim <claim>{claim.text}</claim>. Use the tools to find supporting evidence and create an argument.",
+                "content": f"Evaluate this claim <claim>{claim.text}</claim>. Use the tools to find {support_type} evidence and create an argument.",
             },
         ]
+        
+        # Use the dynamic system prompt
+        system_prompt = self._get_system_prompt()
 
         max_iterations = 5  # Prevent infinite loops
         iteration = 0
@@ -119,7 +125,7 @@ class ClaimSupportAgent:
 
             response = self.client.messages.create(
                 model="claude-3-opus-latest",
-                system=SYSTEM_PROMPT,
+                system=system_prompt,
                 messages=messages,
                 temperature=0.7,
                 max_tokens=500,
@@ -167,3 +173,23 @@ class ClaimSupportAgent:
 
         logger.warning("Max iterations reached without creating argument")
         return claim
+    
+    def _get_system_prompt(self):
+        support_type = "supporting" if self.supports else "opposing"
+        evidence_focus = "supports" if self.supports else "opposes"
+        
+        return f"""You are a Claim {support_type.capitalize()} agent that evaluates claims by finding {support_type} evidence. Your goal is to form well-reasoned arguments that {'strengthen' if self.supports else 'challenge'} the claim.
+
+    Process:
+    1. Analyse the given claim to identify key concepts for finding {support_type} evidence
+    2. Search for relevant evidence using the query_evidence tool
+    3. Evaluate each piece of evidence - only keep evidence that {evidence_focus} the claim
+    4. Once you have 2-3 pieces of {support_type} evidence, form an argument
+    5. If you find insuffient evidence you can critique or contest the evidence that is there and submit an argument with no evidence, or weak evidence.
+
+    Guidelines:
+    - Focus ONLY on evidence that {evidence_focus} the claim
+    - Aim for 2-3 pieces of {support_type} evidence
+    - If no {support_type} evidence is found after 3 searches, submit a weak argument with no evidence
+
+    Always think step-by-step and explain your reasoning."""
