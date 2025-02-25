@@ -3,9 +3,9 @@ from __future__ import annotations
 import logging
 import os
 from typing import List, Optional
-
+import json
 from anthropic import Anthropic
-from sherlock.models import Argument, Claim, Evidence
+from sherlock.models import Argument, Claim, Evidence, EvidenceCollection
 from pydantic import BaseModel, Field
 from sherlock.logger_config import get_logger
 
@@ -16,13 +16,6 @@ class QueryInput(BaseModel):
     query: str = Field(
         description="Keywords or phrases to search for in the evidence database. The search uses vector similarity to find relevant matches. Boolean operators (AND, OR, NOT) are not supported."
     )
-
-
-def query_evidence(store, query: str) -> List[Evidence]:
-    """Tool implementation that queries the evidence store"""
-    results = store.query(query)
-    return [Evidence(id=result["id"], text=result["text"]) for result in results]
-
 
 # Tool definition using pydantic schema
 evidence_query_tool = {
@@ -37,29 +30,14 @@ class ArgumentInput(BaseModel):
     supports: bool = Field(
         description="Whether this argument supports (True) or opposes (False) the claim"
     )
-    evidence: List[Evidence] = Field(
-        default=[], description="List of evidence to support this argument"
+    evidence_collection: EvidenceCollection = Field(
+        default_factory=EvidenceCollection, 
+        description="Evidence collection to support this argument"
     )
     subclaims: List[str] = Field(
-        default=[],
+        default_factory=list,
         description="List of claim texts - these will be slugified to create/link claims",
     )
-
-
-def create_argument(
-    text: str, supports: bool, evidence: List[Evidence] = [], subclaims: List[str] = []
-) -> Argument:
-    """Tool implementation that creates an Argument object"""
-    # Create subclaim objects - IDs will be auto-generated from text
-    subclaim_objects = [Claim(text=claim_text) for claim_text in subclaims]
-
-    # Create argument
-    argument = Argument(
-        text=text, supports=supports, evidence=evidence, subclaim=subclaim_objects
-    )
-
-    return argument
-
 
 # Tool definition using pydantic schema
 create_argument_tool = {
@@ -94,33 +72,31 @@ class ClaimSupportAgent:
             "create_argument": self.create_argument,
         }
 
-    def query_evidence(self, query: str) -> List[Evidence]:
+    def query_evidence(self, query: str) -> EvidenceCollection:
         """Query evidence store for supporting evidence"""
         logger.info(f"Querying evidence store with: {query}")
+        
         results = self.evidence_store.query(query)
-        evidence = [
-            Evidence(id=result["id"], text=result["text"]) for result in results
-        ]
-        logger.info(f"Found {len(evidence)} pieces of evidence")
-        return evidence
+        evidence_collection = EvidenceCollection(evidence=[Evidence(id=result["id"], text=result["text"]) for result in results])
+        return evidence_collection
 
     def create_argument(
         self,
         text: str,
+        evidence_collection: EvidenceCollection,
         supports: bool = True,
-        evidence: List[Evidence] = [],
         subclaims: List[str] = [],
     ) -> Argument:
         """Create a supporting argument with evidence"""
         logger.info(f"Creating argument: {text}")
         logger.info(
-            f"With {len(evidence)} pieces of evidence and {len(subclaims)} subclaims"
+            f"With {len(evidence_collection)} pieces of evidence and {len(subclaims)} subclaims"
         )
         return Argument(
             text=text,
             supports=True,  # Always True for support agent
-            evidence=evidence,
-            subclaim=[Claim(text=claim_text) for claim_text in subclaims],
+            evidence_collection=evidence_collection,
+            subclaims=[Claim(text=claim_text) for claim_text in subclaims],
         )
 
     def evaluate_claim(self, claim: Claim) -> Claim:
@@ -152,40 +128,42 @@ class ClaimSupportAgent:
 
             # Process tool calls if any
             if response.stop_reason == "tool_use":
-                tool_name = response.content[0].name
-                tool_inputs = response.content[0].input
-
-                result = self.tools[tool_name](**tool_inputs)
-
-                # Add tool result to messages
                 messages.append(
                     {
                         "role": "assistant",
-                        "content": None,
-                        "tool_calls": [tool_call],
+                        "content": response.content,
                     }
                 )
-                messages.append(
+                logger.info(f"Tool_use stop reason. Response.content: {response.content}")
+
+                tool_use_request = response.content[-1]
+                tool_name = tool_use_request.name
+                tool_inputs = tool_use_request.input
+                tool_use_id = tool_use_request.id
+
+                result = self.tools[tool_name](**tool_inputs)
+                logger.info(f"result from tool {tool_name}: {str(result)[:15]}, type is: {type(result)}")
+
+                tool_response = {
+                "role": "user",
+                "content": [
                     {
-                        "role": "tool",
-                        "tool_call_id": tool_call.id,
-                        "content": str(result),
+                    "type": "tool_result",
+                    "tool_use_id": tool_use_id,
+                    "content": result.model_dump_json()
                     }
-                )
+                ]
+                }
+                
+                messages.append(tool_response)
 
-            # Check if we have a final argument
-            if "create_argument" in [tc.name for tc in response.tool_calls or []]:
-                logger.info("Argument created, adding to claim")
-                # Get the last created argument
-                for tc in reversed(response.tool_calls):
-                    if tc.name == "create_argument":
-                        final_argument = self.tools[tc.name](**tc.parameters)
-                        claim.add_argument(final_argument)
-                        logger.info("Evaluation complete")
-                        return claim
-
-            # Add assistant's response to messages
-            messages.append({"role": "assistant", "content": response.content})
+                if tool_name == "create_argument": #creating argumnet so no need for further calls yet
+                    claim.add_argument(result)
+                    logger.info(f"create_argument called, evaluation complete: {result}")
+                    return claim
+                
+                
+                logger.info(messages)
 
         logger.warning("Max iterations reached without creating argument")
         return claim
