@@ -68,8 +68,8 @@ class ClaimInvestgiationAgent:
     def create_argument(
     self,
     text: str,
-    evidence_collection: EvidenceCollection,
     supports:bool,
+    evidence_collection: EvidenceCollection = EvidenceCollection(),
     subclaims: List[str] = [],
 ) -> Argument:
         """Create an argument with evidence"""
@@ -108,7 +108,7 @@ class ClaimInvestgiationAgent:
             logger.info(f"Starting iteration {iteration}")
 
             response = self.client.messages.create(
-                model="claude-3-opus-latest",
+                model="claude-3-7-sonnet-latest",
                 system=system_prompt,
                 messages=messages,
                 temperature=0.7,
@@ -169,11 +169,12 @@ class ClaimInvestgiationAgent:
     2. Search for relevant evidence using the query_evidence tool
     3. Evaluate each piece of evidence - only keep evidence that {evidence_focus} the claim
     4. Once you have 2-3 pieces of {support_type} evidence, form an argument
-    5. If you find insuffient evidence you can critique or contest the evidence that is there and submit an argument with no evidence, or weak evidence.
+    5. If you find insuffient evidence, you can instead critique any evidence that strengthens the opposite side of the debate
 
     Guidelines:
     - Focus ONLY on evidence that {evidence_focus} the claim
     - Aim for 2-3 pieces of {support_type} evidence
-    - If no {support_type} evidence is found after 3 searches, submit a weak argument with no evidence
+    - If no {support_type} evidence is found after 3 searches, submit a {support_type} argument with no evidence.
+    - Use your general knowledge to add context or plausible explanations
 
     Always think step-by-step and explain your reasoning."""

@@ -27,7 +27,7 @@ class EvidenceStore:
         
         return evidence_id
     
-    def query(self, text, n_results=3):
+    def query(self, text, n_results=10):
         # Simple query function
         results = self.collection.query(
             query_texts=[text],

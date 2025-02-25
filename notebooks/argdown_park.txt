@@ -1,0 +1,14 @@
+# Wally is in the park
+
+[wally-is-in-the-park]: Wally is in the park (supporting=2 opposing=2)
+  + <Argument 1>: The evidence strongly suggests that Wally is indeed in the park. Security camera footage has captured an individual wearing red and white stripes in the park, which is Wally's signature outfit. Given that Wally is known to always wear this distinctive red and white striped top, and such an individual was captured on security cameras in the park, it is reasonable to conclude that the person in the park is Wally. The distinctive nature of Wally's clothing makes misidentification unlikely, as not many people would be wearing that specific outfit.
+    + Security camera shows someone in red and white stripes in the park
+    + Wally always wears a read and white striped top
+  - <Argument 2>: The claim that Wally is in the park is likely false based on strong evidence placing him at the library instead of the park. GPS data and eyewitness testimony provide more reliable indicators of Wally's location than the ambiguous park sighting.
+    + Wally's phone GPS shows he was at the library coordinates
+    + Librarian Jane saw someone matching Wally's description at 3pm
+
+## Likelihood Assessment
+
+Supporting evidence: 2 (50.0%)
+Opposing evidence: 2 (50.0%)

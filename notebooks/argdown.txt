@@ -1,10 +1,10 @@
 # Wally is in the library
 
 [wally-is-in-the-library]: Wally is in the library (supporting=2 opposing=1)
-  + <Argument 1>: The claim that Wally is in the library is well supported by the evidence. His phone's GPS coordinates place him at the library location, and an eyewitness account from librarian Jane confirms she saw someone matching Wally's description in the library at 3pm.
+  + <Argument 1>: Based on the available evidence, it appears very likely that Wally was in the library. Wally's phone GPS data places him at the library location. Additionally, librarian Jane reports seeing someone matching Wally's description in the library around 3pm. Together, the GPS data and eyewitness sighting provide strong support for the claim that Wally was in the library.
     + Wally's phone GPS shows he was at the library coordinates
     + Librarian Jane saw someone matching Wally's description at 3pm
-  - <Argument 2>: While there is no definitive evidence proving Wally was not at the library, library records show he did not check out any books today. This suggests he may not have actually visited the library, or if he did, he didn't engage in typical library activities like borrowing books. However, this evidence is not conclusive, as Wally could have gone to the library without checking anything out.
+  - <Argument 2>: While there are eyewitness reports and GPS data placing Wally at the library, the library's records do not show Wally checking out any books today. This raises some doubt about whether he was actually in the library, as most people go to the library to check out books. Without records of Wally's specific activities, we cannot be fully certain he was in the library.
     + Library card records don't show Wally checking out any books today
 
 ## Likelihood Assessment
