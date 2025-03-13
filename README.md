@@ -27,3 +27,7 @@ Then arrange these in a critical thinking diagram. Inspired by https://argumenta
 * Investigations
 * Law
 * Winning arguments with your friends
+
+## Seeing the argument diagrams
+Paste the output text here: https://argdown.org/sandbox/html
+
