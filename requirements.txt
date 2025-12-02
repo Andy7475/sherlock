@@ -3,3 +3,7 @@ pydantic
 ipykernel
 chromadb
 python-slugify>=7.0.0
+google-api-python-client>=2.0.0
+google-auth-httplib2>=0.1.0
+google-auth-oauthlib>=0.5.0
+google-cloud-storage>=2.14.0

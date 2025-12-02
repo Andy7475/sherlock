@@ -12,6 +12,7 @@ from slugify import slugify
 class Evidence(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     text: str
+    query: Optional[str] = Field(default=None, description="The query that retrieved this evidence")
 
 class EvidenceCollection(BaseModel):
     evidence: List[Evidence] = Field(default_factory=list)
@@ -87,3 +88,41 @@ class Claim(BaseModel):
         supporting = sum([arg.evidence_score for arg in self.arguments if arg.supports])
         opposing = sum([arg.evidence_score for arg in self.arguments if not arg.supports])
         self.likelihood = Likelihood(supporting=supporting, opposing=opposing)
+
+
+# Q&A Models
+class Query(BaseModel):
+    """Represents a search query and its results"""
+    query_text: str = Field(description="The search query string")
+    evidence_found: List[Evidence] = Field(default_factory=list, description="Evidence retrieved by this query")
+
+    def __len__(self):
+        return len(self.evidence_found)
+
+
+class Answer(BaseModel):
+    """Represents an answer to a question with supporting evidence"""
+    question: str = Field(description="The original question")
+    answer_text: str = Field(description="The answer to the question")
+    queries: List[Query] = Field(default_factory=list, description="All queries made to gather evidence")
+    confidence: str = Field(default="medium", description="Confidence level: low, medium, high")
+    iterations_used: int = Field(default=0, description="Number of iterations/turns taken to answer")
+    time_seconds: float = Field(default=0.0, description="Total time in seconds to answer the question")
+
+    @property
+    def all_evidence(self) -> List[Evidence]:
+        """Get all evidence from all queries"""
+        evidence = []
+        for query in self.queries:
+            evidence.extend(query.evidence_found)
+        return evidence
+
+    @property
+    def total_queries(self) -> int:
+        """Total number of queries made"""
+        return len(self.queries)
+
+    @property
+    def total_evidence(self) -> int:
+        """Total number of evidence pieces found"""
+        return len(self.all_evidence)

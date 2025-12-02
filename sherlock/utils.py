@@ -1,6 +1,6 @@
 from typing import Dict
 import re
-from sherlock.models import Claim, Argument, Evidence, EvidenceCollection
+from sherlock.models import Claim, Argument, Evidence, EvidenceCollection, Answer
 
 def export_argdown(claim: Claim) -> str:
     """
@@ -138,3 +138,93 @@ def export_argdown_json(claim: Claim) -> Dict:
     }
     
     return argdown_json
+
+
+def display_answer(answer: Answer) -> str:
+    """
+    Format an Answer object for display with questions, answers, queries, and evidence.
+
+    Args:
+        answer: An Answer object from QuestionAnsweringAgent
+
+    Returns:
+        String containing formatted answer with all queries and evidence
+    """
+    output = []
+
+    # Header
+    output.append("=" * 80)
+    output.append("QUESTION & ANSWER")
+    output.append("=" * 80)
+    output.append("")
+
+    # Question
+    output.append(f"❓ Question:")
+    output.append(f"   {answer.question}")
+    output.append("")
+
+    # Answer
+    output.append(f"💬 Answer (Confidence: {answer.confidence.upper()}):")
+    output.append(f"   {answer.answer_text}")
+    output.append("")
+
+    # Statistics
+    output.append(f"📊 Search Summary:")
+    output.append(f"   • Iterations used: {answer.iterations_used}")
+    output.append(f"   • Total queries made: {answer.total_queries}")
+    output.append(f"   • Total evidence found: {answer.total_evidence}")
+    output.append(f"   • Time taken: {answer.time_seconds}s")
+    output.append("")
+
+    # Queries and Evidence
+    if answer.queries:
+        output.append("🔍 Queries & Evidence:")
+        output.append("")
+
+        for i, query in enumerate(answer.queries, 1):
+            output.append(f"   Query {i}: \"{query.query_text}\"")
+            output.append(f"   Found: {len(query)} piece(s) of evidence")
+
+            if query.evidence_found:
+                output.append("")
+                for j, evidence in enumerate(query.evidence_found, 1):
+                    # Truncate long evidence text
+                    evidence_text = evidence.text
+                    if len(evidence_text) > 500:
+                        evidence_text = evidence_text[:500] + "..."
+
+                    output.append(f"      Evidence {i}.{j}:")
+                    # Split long lines for better readability
+                    for line in evidence_text.split('\n'):
+                        if line.strip():
+                            output.append(f"         {line.strip()}")
+                    output.append("")
+            else:
+                output.append("      (No evidence found)")
+                output.append("")
+    else:
+        output.append("🔍 No queries were made")
+        output.append("")
+
+    output.append("=" * 80)
+
+    return "\n".join(output)
+
+
+def display_answer_compact(answer: Answer) -> str:
+    """
+    Format an Answer object in a compact format showing just answer and key evidence.
+
+    Args:
+        answer: An Answer object from QuestionAnsweringAgent
+
+    Returns:
+        String containing compact formatted answer
+    """
+    output = []
+
+    output.append(f"Q: {answer.question}")
+    output.append(f"A: {answer.answer_text} (confidence: {answer.confidence})")
+    output.append(f"   [{answer.iterations_used} iterations, {answer.total_queries} queries, {answer.total_evidence} evidence pieces, {answer.time_seconds}s]")
+
+    return "\n".join(output)
